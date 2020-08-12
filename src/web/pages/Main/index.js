@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import api from '../../services/api'
 import { Link } from 'react-router-dom'
 import './styles.css'
+import { ipcRenderer } from 'electron'
 
 export default class Main extends Component {
 
@@ -16,9 +17,11 @@ export default class Main extends Component {
     }
 
     loadProducts = async (page = 1) => {
-        const response = await api.get(`/products?page=${page}`)
-        const { docs, ...productInfo } = response.data
-        this.setState({ page, products: response.data.docs, productInfo })
+        ipcRenderer.send('get-products-page-request', page)
+        ipcRenderer.on('get-products-page-response', (event, response) => {
+            const { docs, ...productInfo } = response
+            this.setState({ page, products: docs, productInfo })
+        })
     }
 
     prevPage = () => {
